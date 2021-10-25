@@ -2,6 +2,9 @@
 import { DataChange } from "@colyseus/schema";
 import { Room, Client } from "colyseus.js";
 import { GameState } from "./states/GameState";
+import { number } from "@colyseus/schema/lib/encoding/decode";
+import game from './game'
+import './game-help'
 
 const client = new Client("ws://localhost:8080");
 
@@ -18,8 +21,8 @@ async function connect() {
 
       player.listen('position', (v, p) => {
         console.log(`${sessionid} go to ${v}`);
-        window.document.getElementsByTagName("li")[p || 0].style.backgroundColor = 'transparent'
-        window.document.getElementsByTagName("li")[v].style.backgroundColor = 'red'
+        // window.document.getElementsByTagName("li")[p || 0].style.backgroundColor = 'transparent'
+        // window.document.getElementsByTagName("li")[v].style.backgroundColor = 'red'
       })
     }
 
@@ -45,3 +48,6 @@ async function connect() {
 }
 
 connect()
+
+
+game.scene.start('main')
