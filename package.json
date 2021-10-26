@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+    "schema-codegen": "schema-codegen src/server/states/*.ts --ts --output src/client/states/",
     "start": "node ./lib/index.js",
     "dev": "ts-node-dev --respawn --transpile-only src/server/index.ts"
   },

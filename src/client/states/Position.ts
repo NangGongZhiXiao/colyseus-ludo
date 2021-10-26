@@ -6,9 +6,8 @@
 // 
 
 import { Schema, type, ArraySchema, MapSchema, SetSchema, DataChange } from '@colyseus/schema';
-import { Position } from './Position'
 
-export class Player extends Schema {
-    @type("string") public id!: string;
-    @type([ Position ]) public position: ArraySchema<Position> = new ArraySchema<Position>();
+
+export class Position extends Schema {
+    @type("number") public pos!: number;
 }

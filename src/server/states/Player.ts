@@ -1,11 +1,12 @@
 import { Schema, type } from "@colyseus/schema";
+import { Position } from "./Position";
 
 export class Player extends Schema {
   @type("string")
   id: string = ''
 
-  @type("number")
-  position: number = 0
+  @type({array: Position})
+  position: Position[] = [new Position(),new Position(),new Position(),new Position()]
 
   constructor(id: string) {
     super();

@@ -5,7 +5,6 @@ import { LudoConstant } from "../constants";
 import { GameState } from "../states/GameState";
 import { Player } from "../states/player";
 
-
 export class LudoRoom extends Room<GameState, any> {
   
   maxClients = LudoConstant.maxClient
@@ -14,20 +13,34 @@ export class LudoRoom extends Room<GameState, any> {
   async onCreate(options) {
     this.setState(new GameState())
     this.onMessage('move', (client, message) => {
-      this.state.players[client.sessionId].position = message.position
+      for (const player of this.state.players) {
+        if(player.id == client.sessionId) {
+          player.position[message.chess].pos = message.position
+        }
+      }
     })
   }
 
   // client joined: bring your own logic
   async onJoin(client, options) { 
     console.log('onJoin', client, options);
-    this.state.players[client.sessionId] = new Player(client.sessionId)
+    for (const player of this.state.players) {
+      if(!player.id) {
+        player.id = client.sessionId
+        return
+      }
+    }
   }
  
   // client left: bring your own logic
   async onLeave(client, consented) { 
     console.log('onLeave', client, consented);
-    this.state.players.delete(client.sessionId)
+    for (const player of this.state.players) {
+      if(player.id == client.sessionId) {
+        player.id = ''
+        return
+      }
+    }
   }
 
   // room has been disposed: bring your own logic
