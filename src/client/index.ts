@@ -1,8 +1,6 @@
 
-import { Room, Client } from "colyseus.js";
-import { GameState } from "./states/GameState";
-import {MainScene} from './scenes/main/main-scene'
-import { initGameHelp } from "./game-help";
+import {MainScene} from './scenes/main/MainScene'
+import { initGameHelp } from "./GameHelper";
 
 const game = new Phaser.Game({
   width: 560,

@@ -10,4 +10,7 @@ import { Player } from './Player'
 
 export class GameState extends Schema {
     @type([ Player ]) public players: ArraySchema<Player> = new ArraySchema<Player>();
+    @type("number") public round!: number;
+    @type("number") public roundState!: number;
+    @type([ "number" ]) public diceValues: ArraySchema<number> = new ArraySchema<number>();
 }
