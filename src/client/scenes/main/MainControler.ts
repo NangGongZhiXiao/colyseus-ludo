@@ -38,15 +38,15 @@ export class MainControler {
         }
       }
       this.room.state.listen('round', v => {
-        console.log("round change", this.index, this.me.toJSON());
         if(this.index == v) {
           console.log("开始到我掷骰子了", this.index, this.me.toJSON());
+          this.scene.waitingRoll(this.roll)
         }
       })
       this.room.state.listen('roundState', v => {
         if(v == RoundState.SELECT_CHESS && this.index == this.room.state.round) {
           console.log("回合状态发生变化，开始掷骰子")
-          this.room.send('selectChess', {chess: parseInt(prompt("选择骰子"))})
+          this.scene.waitingSelectChess()
         }
       })
       this.room.state.listen('diceValues', (v) => {
@@ -78,9 +78,15 @@ export class MainControler {
     this.room.send('move', {chess: chess, position: this.me.position[chess].pos + step})
   }
 
+  selectChess(chess: number) {
+    this.room.send('selectChess', {chess: chess})
+  }
+
   // 投掷骰子
   roll() {
-    console.log('开始投掷骰子，后台计算出骰子的值');
-    this.room.send('roll')
+    if(this.state.roundState == RoundState.WAITING_ROLL && this.state.round == this.index) {
+      console.log('开始投掷骰子，后台计算出骰子的值');
+      this.room.send('roll')
+    }
   }
 }
