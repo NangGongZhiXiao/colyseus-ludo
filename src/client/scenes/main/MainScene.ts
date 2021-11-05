@@ -1,7 +1,6 @@
 import { GameObjects, Scene, Tweens } from "phaser";
 import { CHESS_POSITION_MAP, CONSTANT } from "../../constants";
 import { DataChange } from "@colyseus/schema";
-import { GameState } from "../../states/GameState";
 import { Client, Room } from "colyseus.js";
 import { Player } from "../../states/Player";
 import { MainControler } from "./MainControler";
@@ -32,27 +31,34 @@ export class MainScene extends Scene {
 
   addChessGroup() {
     const player = this.chessGroups.length
-    this.chessGroups.push([0, 0, 0, 0].map(position => {
-      return this.add.circle(...this.getPosition(position), CONSTANT.chessRaius, CONSTANT.playerColors[player])
+    this.chessGroups.push([0, 1, 2, 3].map(chess => {
+      return this.add.circle(...this.getBoardCordination(player, chess), CONSTANT.chessRaius, CONSTANT.playerColors[player])
     }))
   }
 
-  move(playerIndex: number, chessIndex: number, position: number, prePosition: number) {
-    if(!(position - prePosition)) return
+  move(playerIndex: number, chessIndex: number, positions: number[], count: number) {
     this.tweens.timeline({
       targets: [this.chessGroups[playerIndex][chessIndex]],
-      duration: 200,
-      tweens: new Array(position - prePosition).fill(0).map((_,i)=>{
-          const [x, y] = this.getPosition(prePosition+i)
+      duration: 200,  
+      tweens: new Array(count).fill(0).map((_,i)=>{
+          const [x, y] = this.getCoordination(positions[i]) || [this.chessGroups[playerIndex][chessIndex].x, this.chessGroups[playerIndex][chessIndex].y]
           return {x, y, delay: 100}
         }),
     })
   }
 
   /// 根据position返回在界面上 x y 坐标，一个数组，方便函数调用的解构使用
-  getPosition(position: number): number[] {
+  getCoordination(position: number): number[] {
+    if((position || 0) <= 0) return null
     const p2d = {x: CHESS_POSITION_MAP[position][0], y: CHESS_POSITION_MAP[position][1]}
     return [(p2d.x+0.5)*CONSTANT.cellWidth, (p2d.y+0.5)*CONSTANT.cellWidth]
+  }
+
+  /// 开始位置的坐标
+  getBoardCordination(playerIndex: number, chess: number) {
+    const map = CONSTANT.playerBoardsPositionMap[playerIndex][chess]
+    const p2d = {x: map[0], y: map[1]}
+    return [p2d.x*CONSTANT.cellWidth, p2d.y*CONSTANT.cellWidth]
   }
 
   /// 准备掷骰子
@@ -70,7 +76,7 @@ export class MainScene extends Scene {
       this.input.on('gameobjectdown', function(){ console.log(arguments)})
       this.rexGestures.add.tap(this.dice).on('tap', debounce(() => {
         this.diceRotationTween.restart()
-        this.controler.roll()
+        roll()
       }, 500))
     }
   }
@@ -80,7 +86,7 @@ export class MainScene extends Scene {
    */
   waitingSelectChess() {
     this.diceRotationTween.stop()
-    this.controler.selectChess(parseInt(prompt("选择棋子")))
+    while(!this.controler.selectChess(parseInt(prompt("选择棋子")))){}
   }
 
   addChessTo(player: number, position: number): boolean {
@@ -90,5 +96,9 @@ export class MainScene extends Scene {
       return true
     }
     return false
+  }
+
+  stopRoll() {
+    this.diceRotationTween.stop()
   }
 }

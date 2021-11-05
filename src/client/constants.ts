@@ -1,6 +1,6 @@
 
 export const CHESS_POSITION_MAP = [
-  [],
+  [-1, -1],
   [6, 0],
   [7, 0],
   [8, 0],
@@ -53,6 +53,30 @@ export const CHESS_POSITION_MAP = [
   [6, 3],
   [6, 2],
   [6, 1],
+  [1, 7],
+  [2, 7],
+  [3, 7],
+  [4, 7],
+  [5, 7],
+  [6, 7],
+  [7, 1],
+  [7, 2],
+  [7, 3],
+  [7, 4],
+  [7, 5],
+  [7, 6],
+  [13, 7],
+  [12, 7],
+  [11, 7],
+  [10, 7],
+  [9, 7],
+  [8, 7],
+  [7, 13],
+  [7, 12],
+  [7, 11],
+  [7, 10],
+  [7, 9],
+  [7, 8],
 ]
 
 const width = 560
@@ -62,5 +86,13 @@ export const CONSTANT = {
   height: width,
   chessRaius: 15,
   cellWidth: width / 15,
-  playerColors: [0x64DD17, 0xDD2C00, 0xFFD600, 0x2962FF]
+  playerColors: [0x64DD17, 0xDD2C00, 0x2962FF, 0xFFD600],
+  playerBoardsPositionMap: [
+    [[3, 2], [4, 3], [3, 4], [2, 3]],
+    [[12, 2], [13, 3], [12, 4], [11, 3]],
+    [[12, 11], [13, 12], [12, 13], [11, 12]],
+    [[3, 11], [4, 12], [3, 13], [2, 12]],
+  ],
+  circumference: 52, // 地图外圈一周的长度
+  diceMaxValue: 6, // 一个骰子的最大点数
 }

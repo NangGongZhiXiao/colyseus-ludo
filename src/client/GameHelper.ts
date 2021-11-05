@@ -1,4 +1,5 @@
 import { Game } from "phaser";
+import { DevConfig } from "./DevConfig";
 import { MainScene } from "./scenes/main/MainScene";
 
 export function initGameHelp(game: Game) {
@@ -11,6 +12,13 @@ export function initGameHelp(game: Game) {
     },
     roll() {
       (game.scene.getScene('main') as MainScene).controler.roll()
+    },
+    autoSelectChess(chess: number) {
+      DevConfig.autoSelectChess = chess
+    },
+    autoPlay(chess: number) {
+      DevConfig.autoRoll = true
+      DevConfig.autoSelectChess = chess
     }
   }
 }

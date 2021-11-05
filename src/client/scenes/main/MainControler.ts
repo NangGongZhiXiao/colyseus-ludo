@@ -1,5 +1,7 @@
 import { Client } from "colyseus.js";
 import { Room } from "colyseus.js";
+import { CONSTANT } from "../../constants";
+import { DevConfig } from "../../DevConfig";
 import { GameState } from "../../states/GameState";
 import { Player } from "../../states/Player";
 import { RoundState } from "../../states/RoundState";
@@ -30,23 +32,27 @@ export class MainControler {
       
       this.room.state.players.onAdd = (player, playerIndex) => {
         this.scene.addChessGroup()
-        player.position.onAdd = (position, index) => {
-          position.listen('pos', (v, p) => {
-            this.scene.move(playerIndex, index, v, p)
-            console.log(`用户${playerIndex}的棋子${index}移动${v}`);
+        player.chess.onAdd = (chess, index) => {
+          chess.listen('pos', (v, p) => {
+            this.scene.move(playerIndex, index, player.lastRoad.map(i=>i), player.lastRoad.length)
+            console.log(`用户${playerIndex}的棋子${index}移动到${v}`);
           })
         }
       }
       this.room.state.listen('round', v => {
         if(this.index == v) {
           console.log("开始到我掷骰子了", this.index, this.me.toJSON());
-          this.scene.waitingRoll(this.roll)
+          DevConfig.autoRoll ? setTimeout(() => this.roll(), 1000) : this.scene.waitingRoll(this.roll.bind(this))
         }
       })
       this.room.state.listen('roundState', v => {
         if(v == RoundState.SELECT_CHESS && this.index == this.room.state.round) {
-          console.log("回合状态发生变化，开始掷骰子")
-          this.scene.waitingSelectChess()
+          console.log("开始选择棋子")
+          DevConfig.autoSelectChess >= 0 
+            ? this.selectChess(DevConfig.autoSelectChess) 
+            : this.scene.waitingSelectChess()
+        } else if (v != RoundState.ROLL) {
+          this.scene.stopRoll()
         }
       })
       this.room.state.listen('diceValues', (v) => {
@@ -75,11 +81,14 @@ export class MainControler {
   }
 
   move(chess: number, step: number) {
-    this.room.send('move', {chess: chess, position: this.me.position[chess].pos + step})
+    this.room.send('move', {chess: chess, position: this.me.chess[chess].pos + step})
   }
 
-  selectChess(chess: number) {
+  selectChess(chess: number): boolean {
+    if(this.me.chess[chess].isFinal) return false
+    if(this.me.chess[chess].pos <= 0 && this.state.diceValues[0] != CONSTANT.diceMaxValue) return false
     this.room.send('selectChess', {chess: chess})
+    return true
   }
 
   // 投掷骰子

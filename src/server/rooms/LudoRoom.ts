@@ -1,4 +1,4 @@
-import { Room } from "@colyseus/core";
+import { Client, Room } from "@colyseus/core";
 import { registerType } from "@colyseus/schema";
 import { number } from "@colyseus/schema/lib/encoding/decode";
 import { LudoConstant } from "../constants";
@@ -38,8 +38,9 @@ export class LudoRoom extends Room<GameState, any> {
   async onCreate(options) {
     this.setState(new GameState())
     this.onMessage('move', (client, message) => {
-      this.findPlayer(client.sessionId).position = message.position
+      this.findPlayer(client.sessionId).chess = message.position
     })
+    // 掷骰子
     this.onMessage('roll', client => {
       if(this.findPlayerIndex(client.sessionId) != this.state.round) return
       this.state.roundState = RoundState.ROLL
@@ -48,13 +49,24 @@ export class LudoRoom extends Room<GameState, any> {
         values.push(Math.ceil(Math.random() * LudoConstant.diceMaxValue))
       }
       this.clock.setTimeout(() => {
+        // 找不到已经出来的或者掷骰子没有6就直接下一个玩家
+        if(!this.findPlayer(client.sessionId).chess.find(i=>i.pos>0) && values[0] != LudoConstant.diceMaxValue) {
+          this.nextPlayerStart()
+          return
+        }
         this.state.roundState = RoundState.SELECT_CHESS
         this.state.diceValues = values
       }, LudoConstant.rollTime)
     })
+    // 选择棋子
     this.onMessage('selectChess', (client, message) => {
       const p = this.findPlayer(client.sessionId)
-      p.position[message.chess].pos = p.position[message.chess].pos + this.state.diceValues.reduce((c,p)=> c+p, 0)
+      const inBoard = p.chess[message.chess].pos <= 0
+      // 在起始位置第一个需要换成1
+      const realValues = inBoard ? [1].concat(this.state.diceValues.slice(1).map(i=>i)) : this.state.diceValues
+      console.log(realValues);
+      
+      p.step(message.chess, realValues.reduce((c,p)=> c+p, 0))
       this.state.roundState = RoundState.WAITING_ROLL
       this.nextPlayerStart()
     })
@@ -66,8 +78,8 @@ export class LudoRoom extends Room<GameState, any> {
   }
 
   // client joined: bring your own logic
-  async onJoin(client, options) { 
-    console.log('onJoin', client, options);
+  async onJoin(client: Client, options) { 
+    console.log('onJoin', client.sessionId);
     for (const player of this.state.players) {
       if(!player.id) {
         player.id = client.sessionId
@@ -77,8 +89,8 @@ export class LudoRoom extends Room<GameState, any> {
   }
  
   // client left: bring your own logic
-  async onLeave(client, consented) { 
-    console.log('onLeave', client, consented);
+  async onLeave(client: Client, consented) { 
+    console.log('onLeave', client.sessionId);
     for (const player of this.state.players) {
       if(player.id == client.sessionId) {
         player.id = ''
